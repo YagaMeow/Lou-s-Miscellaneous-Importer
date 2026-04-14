@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lou's Importer</title>
+  </head>
+  <body>
+    <div class="main-container _fullscreen">
+      <input id="doc" type="file" />
+      <input id="xls" type="file" />
+      <div class="titlebar"></div>
+      <div class="blue-ribbon">
+        <div class="ribbon-content"></div>
+      </div>
+      <div class="blue-ribbon small">
+        <div class="ribbon-content"></div>
+      </div>
+      <div class="white-ribbon small">
+        <div class="ribbon-content"></div>
+      </div>
+
+      <img class="hammer" src="./assets/hammer.png" alt="" />
+      <div class="workbench">
+        <div class="high-light"></div>
+        <div class="drag-area xls focus">
+          <img id="placeholder" src="./assets/xls.svg" alt="" />
+          <img id="done" src="./assets/Enchanted_Book.gif" alt="" />
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <rect
+              x="0"
+              y="0"
+              width="100"
+              height="100"
+              stroke="#777"
+              stroke-width="3"
+              stroke-dasharray="8 4"
+              fill="none"
+              rx="10"
+              ry="10"
+            ></rect>
+          </svg>
+        </div>
+        <div class="mid">
+          <img src="./assets/plus.png" alt="" />
+        </div>
+        <div class="drag-area doc">
+          <img id="placeholder" src="./assets/doc.svg" alt="" />
+          <img id="done" src="./assets/Book_and_Quill_JE2_BE2.png" alt="" />
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <rect
+              x="0"
+              y="0"
+              width="100"
+              height="100"
+              stroke="#777"
+              stroke-width="3"
+              stroke-dasharray="8 4"
+              fill="none"
+              rx="10"
+              ry="10"
+            ></rect>
+          </svg>
+        </div>
+        <div class="to">
+          <img src="./assets/arrow.png" alt="" />
+          <img class="arrow-process" src="./assets/arrow.-white.png" alt="" />
+        </div>
+        <div class="download-area">
+          <img id="done" src="./assets/Written_Book_JE2_BE2.gif" alt="" />
+        </div>
+        <div class="text doc">
+          <p>*修改后的典票</p>
+        </div>
+        <div class="text xls">
+          <p>*参考Excel</p>
+        </div>
+        <div id="content"></div>
+      </div>
+      <div class="tips">
+        <div class="tip ellipsis">
+          <span>等待上传文件</span>
+        </div>
+        <div class="tip">
+          <span>等待上传修改内容</span>
+        </div>
+        <div class="tip">
+          <span>文档已生成</span>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./render.js"></script>
+  <style>
+    * {
+      -ms-overflow-style: none; /* IE 和旧版 Edge */
+      scrollbar-width: none; /* Firefox */
+      user-select: none;
+    }
+    body {
+      padding: 0;
+      margin: 0;
+    }
+    img {
+      user-select: none;
+    }
+
+    .titlebar {
+      width: 100%;
+      position: fixed;
+      user-select: none;
+      height: 30px;
+      background-color: transparent;
+      color: #777;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      app-region: drag;
+      z-index: 99;
+      box-shadow: inset 0 10px 10px rgb(244, 244, 255);
+    }
+
+    ._fullscreen {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .main-container {
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background-color: #ddd;
+    }
+    .workbench {
+      &:hover {
+        transform: translateX(-80px);
+        transition: transform 0.5s ease-out 0.2s;
+      }
+      transform: translateX(-100px);
+      margin-top: calc(12vw + 30px);
+
+      transition: transform 0.4s ease-out;
+
+      display: grid;
+      grid-template-columns: repeat(6, 15%);
+      gap: 10px;
+      padding: 20px;
+      padding-right: 0;
+      padding-left: 120px;
+      margin-left: 0;
+      background-color: transparent;
+      backdrop-filter: blur(5px);
+      border-radius: 0 20px 20px 0;
+      box-shadow:
+        0 0 30px #eee,
+        0 0 50px rgb(130, 164, 238),
+        inset 5px 0px 10px #fff,
+        10px 10px 20px rgba(0, 0, 0, 0.5);
+      /* background-color: #ccc; */
+      /* border-radius: 2%; */
+      /* box-shadow:
+        -5px -5px 8px #eee,
+        5px 5px 8px #eee,
+        inset 1px 1px 10px #eee,
+        inset -1px -1px 10px #eee,
+        0 0 30px #bbb; */
+      position: relative;
+    }
+    @keyframes ribbon-enter {
+      0%,
+      40% {
+        clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+      }
+      70% {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      }
+    }
+    @keyframes ribbon-leave {
+      0%,
+      50% {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      }
+      80%,
+      100% {
+        clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+      }
+    }
+
+    @keyframes ribbon-leave-slow {
+      0%,
+      60% {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      }
+      90%,
+      100% {
+        clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+      }
+    }
+    .white-ribbon,
+    .blue-ribbon {
+      z-index: 0;
+      rotate: 45deg;
+      position: absolute;
+      top: 0;
+      /* transform: translateY(-50%); */
+      height: 20%;
+      width: 150%;
+      animation: ribbon-leave 5s ease-in-out infinite;
+      .ribbon-content {
+        width: 150%;
+        height: 100%;
+        background-color: blue;
+        animation: ribbon-enter 5s ease-in-out infinite;
+      }
+    }
+    .white-ribbon {
+      .ribbon-content {
+        background-color: #fff;
+      }
+    }
+
+    .white-ribbon.small {
+      top: 50%;
+      height: 5%;
+      animation: ribbon-leave-slow 5s ease-in-out infinite;
+      animation-delay: 0s;
+      .ribbon-content {
+        animation-delay: 0s;
+      }
+    }
+    .blue-ribbon.small {
+      top: 30%;
+      height: 10%;
+      animation-delay: 0.2s;
+      .ribbon-content {
+        animation-delay: 0.2s;
+      }
+    }
+    @keyframes action {
+      0% {
+        rotate: 0;
+      }
+
+      5% {
+        rotate: 30deg;
+      }
+
+      60% {
+        rotate: 30deg;
+      }
+
+      100% {
+        rotate: 0;
+      }
+    }
+
+    .hammer {
+      animation: action 2s cubic-bezier(0.38, 1.15, 0.85, 1.2) infinite;
+      position: fixed;
+      left: 20px;
+      top: 40px;
+      width: 10%;
+      aspect-ratio: 1;
+      user-select: none;
+      transform-origin: 30% 90%;
+    }
+
+    #content {
+      height: 100px;
+      /* background-color: #333; */
+      overflow-y: scroll;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      grid-column: 1 / 7;
+      grid-row: 3;
+      color: #eee;
+      text-shadow: 1px 1px 3px #000;
+      mask: linear-gradient(180deg, transparent, #fff);
+      /* font-size: small; */
+      * {
+        margin: 0;
+        padding: 0;
+      }
+    }
+    @keyframes bigger {
+      0% {
+        scale: 1;
+        opacity: 0.5;
+      }
+      100% {
+        scale: 1.5;
+        opacity: 0;
+      }
+    }
+    .text {
+      grid-row: 2;
+      background-color: #ccc;
+      margin-top: 20px;
+      /* aspect-ratio: 1; */
+      padding-left: 10px;
+      border-radius: 5px;
+      color: #777;
+      font-size: small;
+    }
+    .download-area,
+    .drag-area {
+      grid-row: 1;
+      &.focus {
+        &::after {
+          border-radius: 20px;
+          z-index: -1;
+          animation: bigger 1s ease-out infinite;
+          content: "";
+          display: block;
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          right: 0;
+          opacity: 0.3;
+          background-color: #fff;
+        }
+        &::before {
+          border-radius: 20px;
+          z-index: -1;
+          animation: bigger 2s ease-out infinite;
+          content: "";
+          display: block;
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          right: 0;
+          opacity: 0.3;
+          background-color: #fff;
+        }
+      }
+
+      --time: 1s;
+      cursor: pointer;
+      border-radius: 20px;
+      /* border: 5px dashed #555; */
+      transition: background-color 0.1s ease;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #cae0eb;
+      position: relative;
+      /* box-shadow:
+        5px 5px 10px 000,
+        inset 5px 5px 10px #fff; */
+    }
+
+    @keyframes rotate {
+      0% {
+        stroke-dashoffset: 0;
+      }
+      100% {
+        stroke-dashoffset: -12;
+      }
+    }
+    .drag-area svg {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      overflow: visible;
+      animation: rotate var(--time) linear infinite forwards;
+    }
+    .download-area {
+      grid-column: 6/7;
+      grid-row: 1;
+      /* width: 200px; */
+      aspect-ratio: 1;
+    }
+    .mid {
+      grid-column: 2;
+      grid-row: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mid img {
+      width: 50%;
+      aspect-ratio: 1;
+    }
+
+    .to {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      grid-column: 4 / 6;
+      grid-row: 1;
+      position: relative;
+    }
+
+    .to img {
+      width: 50%;
+      position: relative;
+    }
+
+    @keyframes process {
+      0% {
+        clip-path: polygon(0 0, 0% 0, 0% 100%, 0 100%);
+      }
+      100% {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      }
+    }
+    .to img.arrow-process {
+      position: absolute;
+      clip-path: polygon(0 0, 0% 0, 0% 100%, 0 100%);
+    }
+    .to.process img.arrow-process {
+      animation: process 8s linear infinite;
+    }
+    .download-area img,
+    .drag-area img {
+      position: absolute;
+      width: 50px;
+      aspect-ratio: 1;
+      display: block;
+      user-select: none;
+      opacity: 0.8;
+      transition:
+        opacity 0.5s ease,
+        transform 0.8s ease,
+        scale 0.5s ease;
+      &#done {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+    }
+    .download-area,
+    .drag-area {
+      &.done {
+        img {
+          transition:
+            opacity 0.5s ease,
+            transform 0.8s ease;
+        }
+        img#done {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        img#placeholder {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+      }
+    }
+
+    .drag-area:hover {
+      background-color: #b6d8e9;
+      transition: background-color 0.2s ease;
+      --time: 0.2s;
+    }
+    .download-area:hover img,
+    .drag-area:hover img {
+      opacity: 1;
+      scale: 1.05;
+      transition:
+        opacity 0.5s ease,
+        transform 0.8s ease,
+        scale 0.5s ease;
+    }
+    .doc {
+      grid-column: 3/4;
+    }
+    .xls {
+      grid-column: 1/2;
+    }
+    #doc,
+    #xls {
+      width: 0;
+      height: 0;
+    }
+    .tips {
+      z-index: 0;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 20px;
+      padding-top: 50px;
+      perspective: 500px;
+      perspective-origin: left;
+      .tip {
+        &:nth-child(1):hover {
+          span {
+            transform: translateX(10px);
+            transition: transform ease 1s;
+          }
+        }
+        span {
+          transform: translateX(0px);
+          transition: transform ease 0.5s;
+        }
+        border-radius: 0 30px 30px 0;
+        height: 40px;
+        width: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding-left: 10px;
+        color: #fff;
+        font-size: 18px;
+        font-weight: bold;
+        background-color: #666;
+        /* position: absolute; */
+        transform-origin: center center -100px;
+
+        &:nth-child(1) {
+          overflow: hidden;
+
+          &::after,
+          &::before {
+            mix-blend-mode: difference;
+            content: "";
+            display: block;
+            position: absolute;
+            width: 100%;
+            height: 10px;
+            background-color: #eee;
+            rotate: -45deg;
+            /* animation: passby 0.5s ease forwards; */
+          }
+          &::before {
+            height: 30px;
+            transform: translateY(90px);
+          }
+          &::after {
+            transform: translateY(120px);
+          }
+          &:hover {
+            &::before,
+            &::after {
+              transition: transform 2s ease;
+            }
+            &::before {
+              transform: translateY(-130px);
+            }
+            &::after {
+              transform: translateY(-100px);
+              transition-delay: 0.2s;
+              transition-duration: 1.8s;
+            }
+          }
+
+          background-color: #333;
+          transform: translate3d(0, 0, 100px);
+        }
+        &:nth-child(2) {
+          transform: translate3d(0, 0, 80px);
+          filter: blur(3px);
+        }
+        &:nth-child(3) {
+          filter: blur(5px);
+          transform: translate3d(0, 0, 0px);
+        }
+      }
+      &.active {
+        .tip {
+          transition: all ease 1s;
+          &:nth-child(1) {
+            transform: translate3d(0, -60px, 80px);
+            filter: blur(3px);
+            transition-delay: 0;
+            opacity: 0;
+            background-color: #666;
+          }
+          &:nth-child(2) {
+            background-color: #333;
+            transform: translate3d(0, -60px, 100px);
+            filter: blur(0);
+            transition-delay: 0.1s;
+          }
+          &:nth-child(3) {
+            transform: translate3d(0, -60px, 80px);
+            filter: blur(3px);
+            transition-delay: 0.2s;
+          }
+        }
+      }
+    }
+
+    .ellipsis span {
+      &::after {
+        content: "";
+        animation: ellipsis-ani 1s steps(4, end) infinite;
+      }
+    }
+
+    @keyframes ellipsis-ani {
+      0% {
+        content: "";
+      }
+      25% {
+        content: ".";
+      }
+      50% {
+        content: "..";
+      }
+      75% {
+        content: "...";
+      }
+      100% {
+        content: "";
+      }
+    }
+  </style>
+</html>
