@@ -14,7 +14,9 @@ const importer = {
   xlsButton: null,
   downloadButton: null,
   tips: null,
+  container: null,
   init() {
+    this.container = document.querySelector(".main-container");
     this.downloadButton = document.querySelector(".download-area");
     this.tips = document.querySelector(".tips");
     this.docButton = document.querySelector(".doc");
@@ -25,6 +27,7 @@ const importer = {
     this.docButton.addEventListener("click", importer.clickDoc);
     this.xlsButton.addEventListener("click", importer.clickXls);
     this.downloadButton.addEventListener("click", importer.clickDownload);
+    this.tips = document.querySelector(".tips");
     // this.docInput.addEventListener("change", async (e) => {
     //   const file = e.target.files[0];
     //   document.getElementById("content").innerHTML = "<p>正在解析文档...</p>";
@@ -35,6 +38,14 @@ const importer = {
     //   document.getElementById("content").innerHTML = result.value;
     // });
     console.log("[importer]init completed.");
+    this.show();
+  },
+  show() {
+    this.container.classList.remove("hajime");
+    this.container.classList.add("show");
+    setTimeout(() => {
+      this.container.classList.remove("show");
+    }, 2000);
   },
   switchTip() {
     this.tips.classList.add("active");
@@ -62,7 +73,7 @@ const importer = {
       importer.downloadButton.classList.remove("focus");
       importer.switchTip();
       let sel = document.createElement("p");
-      sel.innerHTML = `${importer.getTime()}  保存成功}`;
+      sel.innerHTML = `${importer.getTime()}  保存成功`;
       document.getElementById("content").appendChild(sel);
       importer.downloadButton.classList.remove("done");
       importer.docButton.classList.remove("done");

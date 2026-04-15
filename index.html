@@ -6,7 +6,7 @@
     <title>Lou's Importer</title>
   </head>
   <body>
-    <div class="main-container _fullscreen">
+    <div class="main-container _fullscreen hajime">
       <input id="doc" type="file" />
       <input id="xls" type="file" />
       <div class="titlebar"></div>
@@ -78,13 +78,13 @@
         <div id="content"></div>
       </div>
       <div class="tips">
-        <div class="tip ellipsis">
+        <div class="tip ellipsis hajime">
           <span>等待上传文件</span>
         </div>
-        <div class="tip">
+        <div class="tip hajime">
           <span>等待上传修改内容</span>
         </div>
-        <div class="tip">
+        <div class="tip hajime">
           <span>文档已生成</span>
         </div>
       </div>
@@ -170,20 +170,20 @@
       position: relative;
     }
     @keyframes ribbon-enter {
-      0%,
-      40% {
+      0% {
         clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
       }
-      70% {
+      30%,
+      100% {
         clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
       }
     }
     @keyframes ribbon-leave {
       0%,
-      50% {
+      10% {
         clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
       }
-      80%,
+      40%,
       100% {
         clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
       }
@@ -191,10 +191,10 @@
 
     @keyframes ribbon-leave-slow {
       0%,
-      60% {
+      20% {
         clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
       }
-      90%,
+      50%,
       100% {
         clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
       }
@@ -208,6 +208,7 @@
       /* transform: translateY(-50%); */
       height: 20%;
       width: 150%;
+      clip-path: polygon(0 0, 0 0, 0 100%, 0, 100%);
       animation: ribbon-leave 5s ease-in-out infinite;
       .ribbon-content {
         width: 150%;
@@ -482,6 +483,7 @@
       height: 0;
     }
     .tips {
+      transition: transform 1s ease;
       z-index: 0;
       flex-grow: 1;
       display: flex;
@@ -613,6 +615,38 @@
       }
       100% {
         content: "";
+      }
+    }
+
+    .hajime {
+      .tip {
+        &:nth-child(1) {
+          transform: translate3d(0, 10px, 100px);
+        }
+        &:nth-child(2) {
+          transform: translate3d(0, 10px, 80px);
+          filter: blur(3px);
+        }
+        &:nth-child(3) {
+          filter: blur(5px);
+          transform: translate3d(0, 10px, 0px);
+        }
+      }
+      .workbench {
+        transform: translateX(-80%);
+      }
+    }
+    .show {
+      .tip {
+        transition: transform 1s ease 0.5s;
+      }
+      .workbench {
+        &:hover {
+          transform: translateX(-100px);
+
+          transition: transform 1s ease;
+        }
+        transition: transform 1s ease;
       }
     }
   </style>
