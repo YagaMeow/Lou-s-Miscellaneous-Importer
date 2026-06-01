@@ -89,14 +89,13 @@ function parseTableFromHtml(htmlString) {
       });
     tables.push(data);
   });
-
   return tables;
 }
 
 const DEFAULT_TASK = {
-  level: "xxKV",
+  level: "220kV",
   type: "典型操作任务",
-  sub_type: "220kV操作任务",
+  sub_type: "xxkV操作任务",
   separation: "未知间隔",
 };
 
@@ -117,8 +116,8 @@ function addTask(key, custom) {
 async function getDataFromExample(tableData) {
   info.name = tableData[1][1].trim();
   for (let i = 0; i < tableData.length; ++i) {
-    if (tableData[i][0] !== null) {
-      addTask(tableData[i][4].trim(), {
+    if (tableData[i][0] !== null || tableData[i][1] != null) {
+      addTask(tableData[i][4].replace(/\s+/g, ""), {
         ...(tableData[i][0] ? { level: tableData[i][0] } : {}),
         ...(tableData[i][2] ? { type: tableData[i][2] } : {}),
         ...(tableData[i][3] ? { sub_type: tableData[i][3] } : {}),
@@ -159,16 +158,22 @@ async function saveTablesToExcel(tablesData) {
       const excelRow = worksheet.addRow([]);
       let colIndex = 3;
 
-      let re = /^操作任务.*(?<!(所用|主|压))变/;
+      let re = /^操作任务.*(?<!(所用|主|压|接地))变/;
       // console.log(re);
       for (const cell of row) {
-        if (cell.text.length < 2) excelRow.getCell(colIndex + 1).value = idx++;
-        else if (cell.text.match(skip)) {
+        if (cell.text.length < 2) {
+          if (row.length > 1) excelRow.getCell(colIndex + 1).value = idx++;
+          else {
+            worksheet.spliceRows(ridx + 1, 1);
+            ridx--
+            break
+          }
+        } else if (cell.text.match(skip)) {
           worksheet.spliceRows(ridx + 1, 1);
           ridx--;
           break;
         } else if (cell.text.match(re)) {
-          const taskName = cell.text.replace(re, "").trim();
+          const taskName = cell.text.replace(re, "").replace(/\s+/g, "");
           let taskInfo = info.tasks.get(taskName) || DEFAULT_TASK;
           excelRow.getCell(1).value = taskInfo.level;
           excelRow.getCell(2).value = info.name;
@@ -184,9 +189,10 @@ async function saveTablesToExcel(tablesData) {
           const endCol = startCol + cell.colspan - 1;
           const startRow = ridx + 1;
           const endRow = startRow + cell.rowspan - 1;
-          worksheet.mergeCells(startRow, startCol, endRow, endCol);
+          // worksheet.mergeCells(startRow, startCol, endRow, endCol);
         }
-        colIndex += cell.colspan;
+        // colIndex += cell.colspan;
+        colIndex += 1;
       }
     }
   }
@@ -271,10 +277,13 @@ function createWindow() {
     try {
       const fileBuffer = await fs.readFile(filePath);
       const result = await mammoth.convertToHtml({ path: filePath });
-      // document.getElementById('output').innerHTML = result.value
       const tables = parseTableFromHtml(result.value);
       saveTablesToExcel(tables);
-      return { success: true, html: JSON.stringify(tables, null, 2) };
+      return {
+        success: true,
+        raw: result.value,
+        html: JSON.stringify(tables, null, 2),
+      };
     } catch (error) {
       console.log("[Word] Parse failed.", error);
       return { success: false, error: error.message };

@@ -78,6 +78,7 @@ const importer = {
       importer.downloadButton.classList.remove("done");
       importer.docButton.classList.remove("done");
       importer.xlsButton.classList.remove("done");
+      importer.clickXls.classList.add("focus")
     } else {
       let sel = document.createElement("p");
       sel.innerHTML = `${importer.getTime()}  保存失败: ${res.error}`;
@@ -96,6 +97,7 @@ const importer = {
       let sel = document.createElement("p");
       sel.innerHTML = `${importer.getTime()}  完成解析Word数据`;
       document.getElementById("content").appendChild(sel);
+      // document.querySelector("#output").innerHTML = result.raw
       importer.docButton.classList.remove("focus");
       importer.docButton.classList.add("done");
       importer.arrow.classList.add("process");
