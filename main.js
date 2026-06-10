@@ -4,6 +4,7 @@ const fs = require("fs").promises;
 const mammoth = require("mammoth");
 const ExcelJS = require("exceljs");
 const { table, error } = require("node:console");
+const { text } = require("node:stream/consumers");
 
 if (handleSquirrelEvent()) {
   app.quit();
@@ -158,20 +159,20 @@ async function saveTablesToExcel(tablesData) {
       const excelRow = worksheet.addRow([]);
       let colIndex = 3;
 
-      let re = /^操作任务.*(?<!(所用|主|压|接地))变/;
+      let re = /.*操作任务.*(?<!(所用|主|压|接地))变/;
       // console.log(re);
       for (const cell of row) {
-        if (cell.text.length < 2) {
-          if (row.length > 1) excelRow.getCell(colIndex + 1).value = idx++;
-          else {
-            worksheet.spliceRows(ridx + 1, 1);
-            ridx--
-            break
-          }
-        } else if (cell.text.match(skip)) {
+        if (cell.text.match(skip)) {
           worksheet.spliceRows(ridx + 1, 1);
           ridx--;
           break;
+        } else if (cell.text.length < 5) {
+          if (row.length > 1) excelRow.getCell(colIndex + 1).value = cell.text;
+          else {
+            worksheet.spliceRows(ridx + 1, 1);
+            ridx--;
+            break;
+          }
         } else if (cell.text.match(re)) {
           const taskName = cell.text.replace(re, "").replace(/\s+/g, "");
           let taskInfo = info.tasks.get(taskName) || DEFAULT_TASK;
@@ -182,7 +183,14 @@ async function saveTablesToExcel(tablesData) {
           excelRow.getCell(5).value = taskName;
           excelRow.getCell(6).value = taskInfo.separation;
           break;
-        } else excelRow.getCell(colIndex + 1).value = cell.text;
+        } else {
+          if (row.length < 2) {
+            worksheet.spliceRows(ridx + 1, 1);
+            ridx--;
+            break;
+          }
+          excelRow.getCell(colIndex + 1).value = cell.text;
+        }
 
         if (cell.colspan > 1 || cell.rowspan > 1) {
           const startCol = colIndex + 1;
